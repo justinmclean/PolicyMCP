@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "asf-policy-mcp"
+version = "0.1.0"
+description = "MCP server for answering questions about Apache Software Foundation policies."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+dependencies = [
+  "mcp>=1.0.0",
+  "httpx>=0.27.0",
+  "beautifulsoup4>=4.12.0",
+]
+keywords = ["mcp", "apache", "policy", "asf"]
+
+[project.optional-dependencies]
+dev = [
+  "coverage>=7.0",
+  "mypy>=1.0",
+  "pytest>=8.0",
+  "ruff>=0.8.0",
+  "types-beautifulsoup4>=4.12.0",
+]
+
+[project.scripts]
+asf-policy-mcp = "asf_policy_mcp.server:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+files = ["src"]
+
+[tool.coverage.run]
+branch = true
+source = ["asf_policy_mcp"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
