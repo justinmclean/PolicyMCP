@@ -28,14 +28,19 @@ def seed_cache(*keys: str, text: str = "Policy text here.", age: float = 0.0) ->
 
 
 def patch_fetch(monkeypatch: pytest.MonkeyPatch, responses: dict[str, str]) -> list[str]:
-    """Replace fetcher.fetch_page_text with a stub returning *responses[url]*."""
+    """Replace fetcher.fetch_page and fetch_page_text with stubs returning *responses[url]*."""
     calls: list[str] = []
 
-    def fake_fetch(url: str) -> str:
+    def fake_fetch_page(url: str) -> tuple[str, list]:
         calls.append(url)
-        return responses.get(url, f"[stub: no response for {url}]")
+        return responses.get(url, f"[stub: no response for {url}]"), []
 
-    monkeypatch.setattr(fetcher, "fetch_page_text", fake_fetch)
+    def fake_fetch_page_text(url: str) -> str:
+        text, _ = fake_fetch_page(url)
+        return text
+
+    monkeypatch.setattr(fetcher, "fetch_page", fake_fetch_page)
+    monkeypatch.setattr(fetcher, "fetch_page_text", fake_fetch_page_text)
     return calls
 
 
