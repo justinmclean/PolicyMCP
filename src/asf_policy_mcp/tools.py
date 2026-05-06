@@ -135,8 +135,8 @@ def search_policies(query: str, max_results: int = 10) -> str:
 
     out = [f"# Search Results for '{query}'\n"]
     for r in deduped:
-        anchors: list[list[Any]] = cache.get(r["key"], {}).get("anchors", [])
-        anchor_id = fetcher.find_anchor(anchors, r["line"])
+        doc_anchors: list[list[Any]] = cache.get(r["key"], {}).get("anchors", [])
+        anchor_id = fetcher.find_anchor(doc_anchors, r["line"])
         link_url = f"{r['url']}#{anchor_id}" if anchor_id else r["url"]
         out.append(f"## [{r['title']}]({link_url})  (`{r['key']}`)\n")
         out.append("```")
