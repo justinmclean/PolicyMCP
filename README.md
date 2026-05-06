@@ -28,7 +28,7 @@ python -m asf_policy_mcp.server
 
 ## First-time setup
 
-After installing, warm the cache by running the `refresh_cache` tool once (e.g. ask Claude to "refresh all policies"). This fetches all ~55 policy documents and caches them locally for 30 days — without it, searches will skip any policies not yet cached.
+No manual cache warm-up is required. Policies are fetched on demand and cached locally for 30 days. Use `refresh_cache` if you want to pre-fetch everything or force an update.
 
 ## Test
 
