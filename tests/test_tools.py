@@ -224,13 +224,16 @@ def test_search_policies_returns_no_results_message() -> None:
     assert "No results" in result
 
 
-def test_search_policies_notes_uncached_policies() -> None:
-    # Only seed one policy — the rest should be reported as skipped
+def test_search_policies_fetches_uncached_policies(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Only seed one policy — uncached ones should be auto-fetched and searched
     seed_cache("voting", text="voting rules here")
+    patch_fetch(monkeypatch, {meta["url"]: "xyzzy unique content" for meta in POLICY_SOURCES.values()})
 
-    result = tools.search_policies("xyzzy_not_found_anywhere")
+    result = tools.search_policies("xyzzy unique content")
 
-    assert "not yet cached" in result or "uncached" in result
+    # Should find results from the auto-fetched policies, not report them as skipped
+    assert "No results" not in result
+    assert "uncached" not in result
 
 
 def test_search_policies_empty_query_returns_prompt() -> None:

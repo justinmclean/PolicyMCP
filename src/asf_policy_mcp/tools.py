@@ -61,33 +61,30 @@ def get_policy(key: str, force_refresh: bool = False) -> str:
 
 @mcp.tool()
 def search_policies(query: str, max_results: int = 10) -> str:
-    """Search across cached ASF policy documents for a query term or phrase.
+    """Search across all ASF policy documents for a query term or phrase.
 
-    Returns ranked excerpts with surrounding context.
-    Only searches policies already in the local cache — run refresh_cache first
-    to ensure all policies are available.
+    Returns ranked excerpts with surrounding context.  Policies not yet in the
+    local cache are fetched automatically so every policy is always searched.
     """
     if not query.strip():
         return "Please provide a search query."
 
     cache = fetcher.load_cache()
     query_words = set(query.lower().split())
-    results: list[dict[str, Any]] = []
-    skipped: list[str] = []
 
-    for key in POLICY_SOURCES:
+    def score_text(key: str) -> list[dict[str, Any]]:
         entry = cache.get(key, {})
         text = str(entry.get("text", ""))
         if not text or text.startswith("[Error"):
-            skipped.append(key)
-            continue
+            return []
         lines = text.split("\n")
+        hits: list[dict[str, Any]] = []
         for i, line in enumerate(lines):
             score = sum(1 for w in query_words if w in line.lower())
             if score:
                 start = max(0, i - 2)
                 end = min(len(lines), i + 3)
-                results.append({
+                hits.append({
                     "key": key,
                     "title": POLICY_SOURCES[key]["title"],
                     "url": POLICY_SOURCES[key]["url"],
@@ -95,6 +92,31 @@ def search_policies(query: str, max_results: int = 10) -> str:
                     "excerpt": "\n".join(lines[start:end]).strip(),
                     "line": i,
                 })
+        return hits
+
+    # Search cached policies first
+    results: list[dict[str, Any]] = []
+    uncached: list[str] = []
+    for key in POLICY_SOURCES:
+        entry = cache.get(key, {})
+        if entry.get("text") and not str(entry["text"]).startswith("[Error"):
+            results.extend(score_text(key))
+        else:
+            uncached.append(key)
+
+    # Fetch any uncached policies in parallel then search them too
+    if uncached:
+        def fetch_one(key: str) -> tuple[str, str, list[list[Any]]]:
+            text, anchors = fetcher.fetch_page(POLICY_SOURCES[key]["url"])
+            return key, text, anchors
+
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            futures = {pool.submit(fetch_one, k): k for k in uncached}
+            for future in as_completed(futures):
+                key, text, anchors = future.result()
+                cache[key] = {"text": text, "fetched_at": time.time(), "url": POLICY_SOURCES[key]["url"], "anchors": anchors}
+                results.extend(score_text(key))
+        fetcher.save_cache(cache)
 
     results.sort(key=lambda r: -r["score"])
 
@@ -109,10 +131,7 @@ def search_policies(query: str, max_results: int = 10) -> str:
             break
 
     if not deduped:
-        msg = f"No results found for **{query!r}**."
-        if skipped:
-            msg += f"\n\n_{len(skipped)} policies not yet cached were skipped. Run `refresh_cache` to include them._"
-        return msg
+        return f"No results found for **{query!r}**."
 
     out = [f"# Search Results for '{query}'\n"]
     for r in deduped:
@@ -123,8 +142,6 @@ def search_policies(query: str, max_results: int = 10) -> str:
         out.append("```")
         out.append(r["excerpt"])
         out.append("```\n")
-    if skipped:
-        out.append(f"_Note: {len(skipped)} uncached policies were not searched. Run `refresh_cache` to include them._")
     return "\n".join(out)
 
 
