@@ -47,3 +47,8 @@ source = ["asf_policy_mcp"]
 [tool.coverage.report]
 show_missing = true
 skip_covered = false
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+]

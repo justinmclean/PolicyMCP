@@ -111,12 +111,15 @@ def search_policies(query: str, max_results: int = 10) -> str:
     if not deduped:
         msg = f"No results found for **{query!r}**."
         if skipped:
-            msg += f"\n\n_{len(skipped)} policies not yet cached were skipped. Run `refresh_cache` to fetch them._"
+            msg += f"\n\n_{len(skipped)} policies not yet cached were skipped. Run `refresh_cache` to include them._"
         return msg
 
     out = [f"# Search Results for '{query}'\n"]
     for r in deduped:
-        out.append(f"## [{r['title']}]({r['url']})  (`{r['key']}`)\n")
+        anchors: list[list] = cache.get(r["key"], {}).get("anchors", [])
+        anchor_id = fetcher.find_anchor(anchors, r["line"])
+        link_url = f"{r['url']}#{anchor_id}" if anchor_id else r["url"]
+        out.append(f"## [{r['title']}]({link_url})  (`{r['key']}`)\n")
         out.append("```")
         out.append(r["excerpt"])
         out.append("```\n")
@@ -137,9 +140,9 @@ def refresh_cache(keys: list[str] | None = None) -> str:
     # Load once; each worker writes its own entry then we merge and save once at the end
     cache = fetcher.load_cache()
 
-    def fetch_one(key: str) -> tuple[str, str]:
-        text = fetcher.fetch_page_text(POLICY_SOURCES[key]["url"])
-        return key, text
+    def fetch_one(key: str) -> tuple[str, str, list]:
+        text, anchors = fetcher.fetch_page(POLICY_SOURCES[key]["url"])
+        return key, text, anchors
 
     refreshed: list[str] = []
     errors: list[str] = [f"Unknown key: `{k}`" for k in unknown]
@@ -147,11 +150,11 @@ def refresh_cache(keys: list[str] | None = None) -> str:
     with ThreadPoolExecutor(max_workers=8) as pool:
         futures = {pool.submit(fetch_one, k): k for k in targets}
         for future in as_completed(futures):
-            key, text = future.result()
+            key, text, anchors = future.result()
             if text.startswith("[Error"):
                 errors.append(f"{key}: {text}")
             else:
-                cache[key] = {"text": text, "fetched_at": time.time(), "url": POLICY_SOURCES[key]["url"]}
+                cache[key] = {"text": text, "fetched_at": time.time(), "url": POLICY_SOURCES[key]["url"], "anchors": anchors}
                 refreshed.append(key)
 
     fetcher.save_cache(cache)
