@@ -116,7 +116,7 @@ def search_policies(query: str, max_results: int = 10) -> str:
 
     out = [f"# Search Results for '{query}'\n"]
     for r in deduped:
-        anchors: list[list] = cache.get(r["key"], {}).get("anchors", [])
+        anchors: list[list[Any]] = cache.get(r["key"], {}).get("anchors", [])
         anchor_id = fetcher.find_anchor(anchors, r["line"])
         link_url = f"{r['url']}#{anchor_id}" if anchor_id else r["url"]
         out.append(f"## [{r['title']}]({link_url})  (`{r['key']}`)\n")
@@ -140,7 +140,7 @@ def refresh_cache(keys: list[str] | None = None) -> str:
     # Load once; each worker writes its own entry then we merge and save once at the end
     cache = fetcher.load_cache()
 
-    def fetch_one(key: str) -> tuple[str, str, list]:
+    def fetch_one(key: str) -> tuple[str, str, list[list[Any]]]:
         text, anchors = fetcher.fetch_page(POLICY_SOURCES[key]["url"])
         return key, text, anchors
 

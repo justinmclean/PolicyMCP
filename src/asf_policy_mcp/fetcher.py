@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 import httpx
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 
 from asf_policy_mcp.sources import POLICY_SOURCES
 
@@ -24,7 +24,7 @@ def html_to_text(html: str) -> str:
     return text
 
 
-def html_to_text_with_anchors(html: str) -> tuple[str, list[list]]:
+def html_to_text_with_anchors(html: str) -> tuple[str, list[list[Any]]]:
     """Extract plain text and a list of [line_number, anchor_id] pairs from HTML.
 
     Anchors come from heading elements (h1-h6) that carry an id attribute.
@@ -38,13 +38,15 @@ def html_to_text_with_anchors(html: str) -> tuple[str, list[list]]:
         or soup.find(attrs={"class": "content"})
         or soup.body
     )
-    root = main or soup
+    root: Tag = main if isinstance(main, Tag) else soup
     text = root.get_text(separator="\n", strip=True)
     text = re.sub(r"\n{3,}", "\n\n", text)
     lines = text.split("\n")
 
-    anchors: list[list] = []
+    anchors: list[list[Any]] = []
     for heading in root.find_all(re.compile(r"^h[1-6]$")):
+        if not isinstance(heading, Tag):
+            continue
         anchor_id = heading.get("id")
         if not anchor_id:
             continue
@@ -59,7 +61,7 @@ def html_to_text_with_anchors(html: str) -> tuple[str, list[list]]:
     return text, anchors
 
 
-def find_anchor(anchors: list[list], line_num: int) -> str | None:
+def find_anchor(anchors: list[list[Any]], line_num: int) -> str | None:
     """Return the anchor id of the nearest heading at or before *line_num*."""
     best: str | None = None
     for line, anchor_id in anchors:
@@ -76,7 +78,7 @@ def fetch_page_text(url: str) -> str:
     return text
 
 
-def fetch_page(url: str) -> tuple[str, list[list]]:
+def fetch_page(url: str) -> tuple[str, list[list[Any]]]:
     """Fetch *url* and return ``(plain_text, anchors)``.
 
     *anchors* is a list of ``[line_number, anchor_id]`` pairs derived from
