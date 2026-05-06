@@ -50,7 +50,9 @@ def html_to_text_with_anchors(html: str) -> tuple[str, list[list[Any]]]:
         anchor_id = heading.get("id")
         if not anchor_id:
             continue
-        heading_text = heading.get_text(strip=True)
+        # Use the same separator as root.get_text so inline child tags (e.g. permalink
+        # anchors containing ¶) don't get concatenated onto the heading text.
+        heading_text = heading.get_text(separator="\n", strip=True).split("\n")[0].strip()
         if not heading_text:
             continue
         for i, line in enumerate(lines):
