@@ -39,7 +39,7 @@ make check
 {
   "mcpServers": {
     "asf-policy": {
-      "command": "/Users/justinmclean/PolicyMCP/.venv/bin/python",
+      "command": "<path to PolicyMCP>/.venv/bin/python",
       "args": ["-m", "asf_policy_mcp.server"]
     }
   }
