@@ -26,10 +26,6 @@ For local development:
 python -m asf_policy_mcp.server
 ```
 
-## First-time setup
-
-No manual cache warm-up is required. Policies are fetched on demand and cached locally for 30 days. Use `refresh_cache` if you want to pre-fetch everything or force an update.
-
 ## Test
 
 ```sh
