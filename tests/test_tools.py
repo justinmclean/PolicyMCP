@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import time
+from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -13,9 +15,9 @@ from asf_policy_mcp.sources import POLICY_SOURCES
 # ---------------------------------------------------------------------------
 
 @pytest.fixture(autouse=True)
-def isolated_cache(monkeypatch: pytest.MonkeyPatch, tmp_path: pytest.TempPathFactory) -> None:
+def isolated_cache(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Redirect cache I/O to a temp dir so tests never touch ~/.cache."""
-    monkeypatch.setattr(fetcher, "CACHE_FILE", tmp_path / "policy_cache.json")  # type: ignore[arg-type]
+    monkeypatch.setattr(fetcher, "CACHE_FILE", tmp_path / "policy_cache.json")
     monkeypatch.setattr(fetcher, "CACHE_TTL", 30 * 24 * 3600)
 
 
@@ -31,7 +33,7 @@ def patch_fetch(monkeypatch: pytest.MonkeyPatch, responses: dict[str, str]) -> l
     """Replace fetcher.fetch_page and fetch_page_text with stubs returning *responses[url]*."""
     calls: list[str] = []
 
-    def fake_fetch_page(url: str) -> tuple[str, list]:
+    def fake_fetch_page(url: str) -> tuple[str, list[Any]]:
         calls.append(url)
         return responses.get(url, f"[stub: no response for {url}]"), []
 
@@ -79,8 +81,8 @@ def test_load_cache_returns_empty_dict_when_file_missing() -> None:
     assert fetcher.load_cache() == {}
 
 
-def test_load_cache_returns_empty_dict_on_corrupt_json(monkeypatch: pytest.MonkeyPatch, tmp_path: pytest.TempPathFactory) -> None:  # type: ignore[override]
-    p = tmp_path / "bad.json"  # type: ignore[operator]
+def test_load_cache_returns_empty_dict_on_corrupt_json(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    p = tmp_path / "bad.json"
     p.write_text("{bad json", encoding="utf-8")
     monkeypatch.setattr(fetcher, "CACHE_FILE", p)
     assert fetcher.load_cache() == {}
@@ -110,7 +112,7 @@ def test_get_policy_text_returns_cached_value_without_fetching(monkeypatch: pyte
 def test_get_policy_text_fetches_when_cache_empty(monkeypatch: pytest.MonkeyPatch) -> None:
     url = POLICY_SOURCES["release_policy"]["url"]
     calls = patch_fetch(monkeypatch, {url: "Fresh content"})
-    cache: dict = {}
+    cache: dict[str, Any] = {}
 
     result = fetcher.get_policy_text("release_policy", cache)
 
