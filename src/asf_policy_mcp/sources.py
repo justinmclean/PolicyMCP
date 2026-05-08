@@ -27,6 +27,12 @@ POLICY_SOURCES: dict[str, dict[str, str]] = {
         "section": "Community And Project Oversight",
         "description": "Policy for archiving ASF public forums such as mailing lists",
     },
+    "bylaws": {
+        "title": "Bylaws of The Apache Software Foundation",
+        "url": "https://www.apache.org/foundation/bylaws.html",
+        "section": "Governance",
+        "description": "Foundation bylaws covering membership, directors, officers, PMCs, records, and amendments",
+    },
     "project_independence": {
         "title": "Project Independence",
         "url": "https://community.apache.org/projectIndependence.html",
@@ -53,7 +59,7 @@ POLICY_SOURCES: dict[str, dict[str, str]] = {
     },
     "release_distribution": {
         "title": "Release Distribution Policy",
-        "url": "https://www.apache.org/dev/release-distribution",
+        "url": "https://infra.apache.org/release-distribution.html",
         "section": "Release",
         "description": "Policy for how and where Apache releases are distributed",
     },
@@ -119,7 +125,7 @@ POLICY_SOURCES: dict[str, dict[str, str]] = {
     },
     "crypto_policy": {
         "title": "Handling Cryptography within an ASF Release",
-        "url": "https://www.apache.org/dev/crypto.html",
+        "url": "https://infra.apache.org/crypto.html",
         "section": "Licensing",
         "description": "Cryptography policy for ASF releases",
     },

@@ -107,6 +107,7 @@ make check
 | `code_of_conduct` | Code of Conduct | Community And Project Oversight |
 | `anti_harassment` | Anti-Harassment Policy | Community And Project Oversight |
 | `public_archives` | Public Forum Archive Policy | Community And Project Oversight |
+| `bylaws` | Bylaws of The Apache Software Foundation | Governance |
 | `project_independence` | Project Independence | Independence |
 | `board_reporting` | Board Reporting Requirements | Reporting |
 | `release_policy` | Release Policy | Release |
