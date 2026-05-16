@@ -363,6 +363,11 @@ def _looks_like_toc(excerpt: str) -> bool:
     if len(lines) < 8:
         return False
     short_lines = sum(1 for line in lines if len(line) < 80)
+    # HTML-extracted prose is word-wrapped to short lines; nav/tables have few words per line.
+    # If ≥35% of lines carry 5+ words it is almost certainly wrapped prose, not a menu or table.
+    prose_lines = sum(1 for line in lines if len(line.split()) >= 5)
+    if prose_lines / len(lines) >= 0.35:
+        return False
     sentence_lines = sum(1 for line in lines if line.endswith((".", ":", ";")))
     question_lines = sum(1 for line in lines if line.endswith("?"))
     return short_lines / len(lines) > 0.75 and sentence_lines + question_lines < len(lines) / 3
@@ -411,14 +416,14 @@ def _bm25_scores(chunks: list[dict[str, Any]], query_terms: list[str]) -> list[d
             denom = freq + k1 * (1 - b + b * (doc_len / avg_len if avg_len else 0.0))
             score += query_count * idf * (freq * (k1 + 1) / denom)
 
-        source_hint_overlap = query_words & SOURCE_HINTS.get(str(chunk["key"]), set())
-        score += len(source_hint_overlap) * 10.0
-        score += sum(12.0 for token in source_hint_overlap if "-" in token)
-        score += len(query_words & set(chunk["source_terms"])) * 0.4
         if _looks_like_toc(str(chunk["excerpt"])):
             score *= 0.35
         if _looks_like_footer(str(chunk["excerpt"])):
             score *= 0.1
+        source_hint_overlap = query_words & SOURCE_HINTS.get(str(chunk["key"]), set())
+        score += len(source_hint_overlap) * 10.0
+        score += sum(12.0 for token in source_hint_overlap if "-" in token)
+        score += len(query_words & set(chunk["source_terms"])) * 0.4
         if score:
             result = dict(chunk)
             result["score"] = score
