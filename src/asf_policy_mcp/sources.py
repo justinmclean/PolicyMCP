@@ -321,6 +321,12 @@ POLICY_SOURCES: dict[str, dict[str, str]] = {
         "section": "Fundraising",
         "description": "Fundraising and sponsorship policies",
     },
+    "targeted_sponsorship": {
+        "title": "Targeted Sponsorship Policy",
+        "url": "https://apache.org/foundation/docs/targeted-sponsorship-policy.html",
+        "section": "Fundraising",
+        "description": "Policy governing the use of targeted sponsorship funds for specific ASF initiatives",
+    },
     "privacy": {
         "title": "Privacy Policy",
         "url": "https://privacy.apache.org/policies/privacy-policy-public.html",
