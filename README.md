@@ -165,3 +165,5 @@ make check
 | `privacy_mailing_lists` | Mailing List Policy | Privacy |
 | `incubator` | Incubator Podling Policies | Incubator |
 | `incubator_ip_clearance` | Incubator IP Clearance | Incubator |
+
+PolicyMCP is an independent tool and is not a project of the Apache Software Foundation. Apache and related marks are trademarks of The Apache Software Foundation.
