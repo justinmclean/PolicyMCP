@@ -156,6 +156,7 @@ make check
 | `jira_account_retention` | Jira Account Retention Policy | Infrastructure |
 | `press` | Press & Marketing Policy | Press |
 | `sponsorship` | Sponsorship Requirements | Fundraising |
+| `targeted_sponsorship` | Targeted Sponsorship Policy | Fundraising |
 | `privacy` | Privacy Policy | Privacy |
 | `privacy_contributors` | Privacy Policy for Contributors | Privacy |
 | `privacy_committers` | Privacy Policy for Committers | Privacy |
