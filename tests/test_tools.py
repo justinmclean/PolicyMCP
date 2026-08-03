@@ -21,6 +21,20 @@ def isolated_cache(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(fetcher, "CACHE_TTL", 30 * 24 * 3600)
 
 
+@pytest.fixture(autouse=True)
+def no_network(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Fail loudly if a test reaches the real network.
+
+    Tests that legitimately exercise fetching call patch_fetch/stub_all_fetches,
+    which override this.
+    """
+    def _unstubbed(url: str) -> Any:
+        raise AssertionError(f"unstubbed network fetch: {url} - call stub_all_fetches()")
+
+    monkeypatch.setattr(fetcher, "fetch_page", _unstubbed)
+    monkeypatch.setattr(fetcher, "fetch_page_text", _unstubbed)
+
+
 def seed_cache(*keys: str, text: str = "Policy text here.", age: float = 0.0) -> None:
     """Write a pre-populated cache file for the given policy keys."""
     fetcher.save_cache({
@@ -44,6 +58,15 @@ def patch_fetch(monkeypatch: pytest.MonkeyPatch, responses: dict[str, str]) -> l
     monkeypatch.setattr(fetcher, "fetch_page", fake_fetch_page)
     monkeypatch.setattr(fetcher, "fetch_page_text", fake_fetch_page_text)
     return calls
+
+
+def stub_all_fetches(monkeypatch: pytest.MonkeyPatch, text: str = "unrelated text") -> list[str]:
+    """Stub every policy URL so search_policies' auto-fetch stays offline.
+
+    search_policies fetches every *uncached* policy, so a test that seeds only a
+    couple of keys would otherwise pull ~60 live pages from apache.org.
+    """
+    return patch_fetch(monkeypatch, {meta["url"]: text for meta in POLICY_SOURCES.values()})
 
 
 # ---------------------------------------------------------------------------
@@ -211,7 +234,7 @@ def test_get_policy_force_refresh_re_fetches(monkeypatch: pytest.MonkeyPatch) ->
 
 def test_search_policies_finds_matching_text(monkeypatch: pytest.MonkeyPatch) -> None:
     seed_cache("release_policy", text="A release must be voted on by the PMC.")
-    patch_fetch(monkeypatch, {meta["url"]: "unrelated text" for meta in POLICY_SOURCES.values()})
+    stub_all_fetches(monkeypatch)
 
     result = tools.search_policies("voted PMC")
 
@@ -221,7 +244,7 @@ def test_search_policies_finds_matching_text(monkeypatch: pytest.MonkeyPatch) ->
 
 def test_search_policies_returns_no_results_message(monkeypatch: pytest.MonkeyPatch) -> None:
     seed_cache("release_policy", text="unrelated text")
-    patch_fetch(monkeypatch, {meta["url"]: "unrelated text" for meta in POLICY_SOURCES.values()})
+    stub_all_fetches(monkeypatch)
 
     # NB: the query must survive _tokenize_terms(drop_negated=True) intact. An
     # underscored phrase like "xyzzy_not_found_anywhere" is split on underscores,
@@ -272,7 +295,8 @@ def test_tokenizer_applies_variants_to_singular_and_plural_forms() -> None:
     assert {"dependency", "dependencies", "library", "libraries"} <= tokens
 
 
-def test_search_policies_deduplicates_nearby_lines() -> None:
+def test_search_policies_deduplicates_nearby_lines(monkeypatch: pytest.MonkeyPatch) -> None:
+    stub_all_fetches(monkeypatch)
     seed_cache("voting", text="\n".join(["vote vote vote"] * 20))
 
     result = tools.search_policies("vote", max_results=5)
@@ -288,7 +312,8 @@ def test_search_policies_respects_max_results() -> None:
     assert result.count("```") == 6  # 3 results × opening + closing
 
 
-def test_search_policies_includes_nearest_section_locator() -> None:
+def test_search_policies_includes_nearest_section_locator(monkeypatch: pytest.MonkeyPatch) -> None:
+    stub_all_fetches(monkeypatch)
     seed_cache("bylaws", text="\n".join([
         "Section 3.9.",
         "Quorum and Voting Requirements.",
@@ -304,7 +329,8 @@ def test_nearest_section_locator_returns_none_without_section() -> None:
     assert tools._nearest_section_locator(["No formal section", "matching text"], 1) is None
 
 
-def test_search_policies_ignores_question_stopwords_for_ranking() -> None:
+def test_search_policies_ignores_question_stopwords_for_ranking(monkeypatch: pytest.MonkeyPatch) -> None:
+    stub_all_fetches(monkeypatch)
     seed_cache(
         "pmc",
         text="The chair reports to the board and ultimately to the ASF membership.",
@@ -324,7 +350,8 @@ def test_search_policies_ignores_question_stopwords_for_ranking() -> None:
     assert "(`pmc`)" not in result
 
 
-def test_search_policies_uses_source_metadata_for_policy_specific_queries() -> None:
+def test_search_policies_uses_source_metadata_for_policy_specific_queries(monkeypatch: pytest.MonkeyPatch) -> None:
+    stub_all_fetches(monkeypatch)
     fetcher.save_cache({
         "release_distribution": {
             "text": "Projects must publish releases through the ASF distribution system.",
@@ -344,7 +371,8 @@ def test_search_policies_uses_source_metadata_for_policy_specific_queries() -> N
     assert "(`release_policy`)" not in result
 
 
-def test_search_policies_keeps_graduation_searchable() -> None:
+def test_search_policies_keeps_graduation_searchable(monkeypatch: pytest.MonkeyPatch) -> None:
+    stub_all_fetches(monkeypatch)
     fetcher.save_cache({
         "incubator": {
             "text": "Guide to successful graduation for podlings.",
@@ -363,7 +391,8 @@ def test_search_policies_keeps_graduation_searchable() -> None:
     assert "(`incubator`)" in result
 
 
-def test_search_policies_prefers_resolved_licenses_for_gpl_questions() -> None:
+def test_search_policies_prefers_resolved_licenses_for_gpl_questions(monkeypatch: pytest.MonkeyPatch) -> None:
+    stub_all_fetches(monkeypatch)
     fetcher.save_cache({
         "release_policy": {
             "text": "Every release must contain appropriately licensed source code.",
@@ -383,7 +412,8 @@ def test_search_policies_prefers_resolved_licenses_for_gpl_questions() -> None:
     assert "(`release_policy`)" not in result
 
 
-def test_search_policies_prefers_resolved_licenses_for_mit_questions() -> None:
+def test_search_policies_prefers_resolved_licenses_for_mit_questions(monkeypatch: pytest.MonkeyPatch) -> None:
+    stub_all_fetches(monkeypatch)
     fetcher.save_cache({
         "release_policy": {
             "text": "Every release must contain appropriately licensed source code.",
@@ -403,7 +433,8 @@ def test_search_policies_prefers_resolved_licenses_for_mit_questions() -> None:
     assert "(`release_policy`)" not in result
 
 
-def test_search_policies_prefers_specific_mit_license_excerpt() -> None:
+def test_search_policies_prefers_specific_mit_license_excerpt(monkeypatch: pytest.MonkeyPatch) -> None:
+    stub_all_fetches(monkeypatch)
     seed_cache(
         "resolved_licenses",
         text="\n".join([
@@ -420,7 +451,8 @@ def test_search_policies_prefers_specific_mit_license_excerpt() -> None:
     assert "MIT/X11" in result
 
 
-def test_search_policies_prefers_specific_lgpl_license_excerpt() -> None:
+def test_search_policies_prefers_specific_lgpl_license_excerpt(monkeypatch: pytest.MonkeyPatch) -> None:
+    stub_all_fetches(monkeypatch)
     seed_cache(
         "resolved_licenses",
         text="\n".join([
@@ -436,7 +468,8 @@ def test_search_policies_prefers_specific_lgpl_license_excerpt() -> None:
     assert "GNU LGPL" in result
 
 
-def test_search_policies_uses_phrase_hints_for_common_project_questions() -> None:
+def test_search_policies_uses_phrase_hints_for_common_project_questions(monkeypatch: pytest.MonkeyPatch) -> None:
+    stub_all_fetches(monkeypatch)
     fetcher.save_cache({
         "pmc": {
             "text": "Committers work on the project and earn karma.",
@@ -455,7 +488,8 @@ def test_search_policies_uses_phrase_hints_for_common_project_questions() -> Non
     assert "(`project_independence`)" in result
 
 
-def test_search_policies_distinguishes_third_party_services_from_license_notices() -> None:
+def test_search_policies_distinguishes_third_party_services_from_license_notices(monkeypatch: pytest.MonkeyPatch) -> None:
+    stub_all_fetches(monkeypatch)
     fetcher.save_cache({
         "third_party_services": {
             "text": "Third party services may be used by projects.",
@@ -476,7 +510,8 @@ def test_search_policies_distinguishes_third_party_services_from_license_notices
     assert "(`resolved_licenses`)" in notice_result
 
 
-def test_search_policies_routes_common_notice_ip_and_account_questions() -> None:
+def test_search_policies_routes_common_notice_ip_and_account_questions(monkeypatch: pytest.MonkeyPatch) -> None:
+    stub_all_fetches(monkeypatch)
     fetcher.save_cache({
         "resolved_licenses": {
             "text": "NOTICE and LICENSE document third-party dependency notices.",
@@ -500,7 +535,8 @@ def test_search_policies_routes_common_notice_ip_and_account_questions() -> None
     assert "(`password_policy`)" in tools.search_policies("Can committer accounts be shared?", max_results=1)
 
 
-def test_search_policies_prefers_confidentiality_excerpt_for_private_list_questions() -> None:
+def test_search_policies_prefers_confidentiality_excerpt_for_private_list_questions(monkeypatch: pytest.MonkeyPatch) -> None:
+    stub_all_fetches(monkeypatch)
     fetcher.save_cache({
         "pmc": {
             "text": "\n".join([
@@ -533,7 +569,8 @@ def test_search_policies_prefers_confidentiality_excerpt_for_private_list_questi
     assert "Do not quote" in result
 
 
-def test_search_policies_prefers_board_election_excerpt() -> None:
+def test_search_policies_prefers_board_election_excerpt(monkeypatch: pytest.MonkeyPatch) -> None:
+    stub_all_fetches(monkeypatch)
     seed_cache(
         "bylaws",
         text="\n".join([
@@ -551,7 +588,8 @@ def test_search_policies_prefers_board_election_excerpt() -> None:
     assert "members shall elect a Board of Directors" in result
 
 
-def test_search_policies_prefers_pmc_chair_appointment_excerpt() -> None:
+def test_search_policies_prefers_pmc_chair_appointment_excerpt(monkeypatch: pytest.MonkeyPatch) -> None:
+    stub_all_fetches(monkeypatch)
     seed_cache(
         "pmc",
         text="\n".join([
@@ -566,7 +604,8 @@ def test_search_policies_prefers_pmc_chair_appointment_excerpt() -> None:
     assert "appointed by the board" in result
 
 
-def test_search_policies_prefers_pmc_emeritus_excerpt_over_bylaws_membership() -> None:
+def test_search_policies_prefers_pmc_emeritus_excerpt_over_bylaws_membership(monkeypatch: pytest.MonkeyPatch) -> None:
+    stub_all_fetches(monkeypatch)
     fetcher.save_cache({
         "bylaws": {
             "text": "Section 4.2.\nEmeritus Members.\nEmeritus members of the corporation may attend meetings.",
@@ -589,7 +628,8 @@ def test_search_policies_prefers_pmc_emeritus_excerpt_over_bylaws_membership() -
     assert "(`pmc`)" in result
 
 
-def test_search_policies_prefers_old_release_archive_excerpt() -> None:
+def test_search_policies_prefers_old_release_archive_excerpt(monkeypatch: pytest.MonkeyPatch) -> None:
+    stub_all_fetches(monkeypatch)
     seed_cache(
         "release_distribution",
         text="\n".join([
@@ -604,7 +644,8 @@ def test_search_policies_prefers_old_release_archive_excerpt() -> None:
     assert "archive.apache.org" in result
 
 
-def test_search_policies_prefers_slack_policy_for_slack_decisions() -> None:
+def test_search_policies_prefers_slack_policy_for_slack_decisions(monkeypatch: pytest.MonkeyPatch) -> None:
+    stub_all_fetches(monkeypatch)
     fetcher.save_cache({
         "pmc": {
             "text": "The PMC makes decisions on mailing lists.",
@@ -623,7 +664,8 @@ def test_search_policies_prefers_slack_policy_for_slack_decisions() -> None:
     assert "(`slack_policy`)" in result
 
 
-def test_search_policies_prefers_domain_policy_over_general_branding() -> None:
+def test_search_policies_prefers_domain_policy_over_general_branding(monkeypatch: pytest.MonkeyPatch) -> None:
+    stub_all_fetches(monkeypatch)
     fetcher.save_cache({
         "branding": {
             "text": "Project branding includes names and domain references.",
