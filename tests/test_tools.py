@@ -209,8 +209,9 @@ def test_get_policy_force_refresh_re_fetches(monkeypatch: pytest.MonkeyPatch) ->
 # tools.search_policies
 # ---------------------------------------------------------------------------
 
-def test_search_policies_finds_matching_text() -> None:
+def test_search_policies_finds_matching_text(monkeypatch: pytest.MonkeyPatch) -> None:
     seed_cache("release_policy", text="A release must be voted on by the PMC.")
+    patch_fetch(monkeypatch, {meta["url"]: "unrelated text" for meta in POLICY_SOURCES.values()})
 
     result = tools.search_policies("voted PMC")
 
@@ -218,10 +219,15 @@ def test_search_policies_finds_matching_text() -> None:
     assert "voted" in result
 
 
-def test_search_policies_returns_no_results_message() -> None:
+def test_search_policies_returns_no_results_message(monkeypatch: pytest.MonkeyPatch) -> None:
     seed_cache("release_policy", text="unrelated text")
+    patch_fetch(monkeypatch, {meta["url"]: "unrelated text" for meta in POLICY_SOURCES.values()})
 
-    result = tools.search_policies("xyzzy_not_found_anywhere")
+    # NB: the query must survive _tokenize_terms(drop_negated=True) intact. An
+    # underscored phrase like "xyzzy_not_found_anywhere" is split on underscores,
+    # "not" is dropped as a negator (swallowing the token after it), and the
+    # ordinary word "anywhere" survives to match real policy prose.
+    result = tools.search_policies("zzzqqq")
 
     assert "No results" in result
 
