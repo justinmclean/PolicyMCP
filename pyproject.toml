@@ -10,7 +10,10 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"
 dependencies = [
-  "mcp>=1.0.0",
+  # Upper bound is load-bearing: MCP Python SDK v2 ships on PyPI as "mcp" and
+  # REMOVED (not deprecated) mcp.server.fastmcp, which tools.py imports.
+  # Staying on the v1 line until the v2 migration is done deliberately.
+  "mcp>=1.0.0,<2",
   "httpx>=0.27.0",
   "beautifulsoup4>=4.12.0",
 ]
