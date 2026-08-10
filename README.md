@@ -4,6 +4,8 @@ MCP server for answering questions about Apache Software Foundation policies.
 
 Covers the full set of policies listed at <https://www.apache.org/board/policies> — releases, licensing, branding, security, infrastructure, incubator, and more.
 
+Also includes the Delaware General Corporation Law (Title 8, Chapter 1 of the Delaware Code), under which the ASF is incorporated. Delaware sources are only included in search when the query mentions Delaware; they can always be retrieved directly by key with `get_policy`.
+
 Policy pages are cached locally for 30 days. Use `force_refresh=true` on read tools to bypass the cache for a single call.
 
 ## Install
@@ -50,7 +52,7 @@ make check
 
 - `list_policies` — list all available policy documents organised by section, with cache status.
 - `get_policy` — retrieve the full text of a policy document by key (e.g. `release_policy`, `branding`, `incubator`).
-- `search_policies` — keyword search across all policy documents, returning ranked excerpts with context.
+- `search_policies` — keyword search across all policy documents, returning ranked excerpts with context. Delaware law sources are only searched when the query mentions Delaware.
 - `refresh_cache` — force re-fetch of one or all policy documents from the ASF website.
 
 ## Example questions
@@ -108,6 +110,7 @@ make check
 | `anti_harassment` | Anti-Harassment Policy | Community And Project Oversight |
 | `public_archives` | Public Forum Archive Policy | Community And Project Oversight |
 | `bylaws` | Bylaws of The Apache Software Foundation | Governance |
+| `certificate_of_incorporation` | Certificate of Incorporation of The Apache Software Foundation | Governance |
 | `project_independence` | Project Independence | Independence |
 | `board_reporting` | Board Reporting Requirements | Reporting |
 | `release_policy` | Release Policy | Release |
@@ -166,5 +169,25 @@ make check
 | `privacy_mailing_lists` | Mailing List Policy | Privacy |
 | `incubator` | Incubator Podling Policies | Incubator |
 | `incubator_ip_clearance` | Incubator IP Clearance | Incubator |
+| `delaware_gcl_formation` | Delaware GCL — Subchapter I. Formation | Delaware Law |
+| `delaware_gcl_powers` | Delaware GCL — Subchapter II. Powers | Delaware Law |
+| `delaware_gcl_registered_office` | Delaware GCL — Subchapter III. Registered Office and Registered Agent | Delaware Law |
+| `delaware_gcl_directors_officers` | Delaware GCL — Subchapter IV. Directors and Officers | Delaware Law |
+| `delaware_gcl_stock_dividends` | Delaware GCL — Subchapter V. Stock and Dividends | Delaware Law |
+| `delaware_gcl_stock_transfers` | Delaware GCL — Subchapter VI. Stock Transfers | Delaware Law |
+| `delaware_gcl_meetings_voting` | Delaware GCL — Subchapter VII. Meetings, Elections, Voting and Notice | Delaware Law |
+| `delaware_gcl_amendments` | Delaware GCL — Subchapter VIII. Amendment of Certificate of Incorporation | Delaware Law |
+| `delaware_gcl_merger_conversion` | Delaware GCL — Subchapter IX. Merger, Consolidation or Conversion | Delaware Law |
+| `delaware_gcl_dissolution` | Delaware GCL — Subchapter X. Sale of Assets, Dissolution and Winding Up | Delaware Law |
+| `delaware_gcl_insolvency` | Delaware GCL — Subchapter XI. Insolvency; Receivers and Trustees | Delaware Law |
+| `delaware_gcl_renewal_revival` | Delaware GCL — Subchapter XII. Renewal, Revival, Extension and Restoration | Delaware Law |
+| `delaware_gcl_suits` | Delaware GCL — Subchapter XIII. Suits Against Corporations, Directors, Officers or Stockholders | Delaware Law |
+| `delaware_gcl_close_corporations` | Delaware GCL — Subchapter XIV. Close Corporations; Special Provisions | Delaware Law |
+| `delaware_gcl_public_benefit` | Delaware GCL — Subchapter XV. Public Benefit Corporations | Delaware Law |
+| `delaware_gcl_foreign_corporations` | Delaware GCL — Subchapter XVI. Foreign Corporations | Delaware Law |
+| `delaware_gcl_domestication_transfer` | Delaware GCL — Subchapter XVII. Domestication and Transfer | Delaware Law |
+| `delaware_gcl_miscellaneous` | Delaware GCL — Subchapter XVIII. Miscellaneous Provisions | Delaware Law |
+
+Delaware Law sources (from <https://delcode.delaware.gov/title8/c001/>) are searched only when the query mentions Delaware, e.g. "Under Delaware law, can members vote by proxy?"
 
 PolicyMCP is an independent tool and is not a project of the Apache Software Foundation. Apache and related marks are trademarks of The Apache Software Foundation.

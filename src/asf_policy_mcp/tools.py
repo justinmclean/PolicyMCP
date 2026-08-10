@@ -292,12 +292,22 @@ def _tokenize_terms(text: str, *, drop_negated: bool = False) -> list[str]:
     return tokens
 
 
+def _search_enabled(key: str, query: str) -> bool:
+    """Return True unless the source requires a term the query doesn't mention."""
+    required = POLICY_SOURCES[key].get("search_requires")
+    return not required or required in query.lower()
+
+
 def _nearest_section_locator(lines: list[str], line_num: int) -> str | None:
     """Find the nearest legal-style section label at or before *line_num*."""
     for i in range(line_num, -1, -1):
         line = lines[i].strip()
         if i != line_num and line.startswith("ARTICLE "):
             break
+        # Statute-style headings ("§ 141. Board of directors...") carry their
+        # title on the same line.
+        if line.startswith("§ "):
+            return line.rstrip(".")
         if line.startswith("Section ") and line.endswith("."):
             title_parts: list[str] = []
             for candidate in lines[i + 1:i + 4]:
@@ -318,6 +328,7 @@ def _is_chunk_boundary(line: str) -> bool:
     clean = line.strip()
     return (
         clean.startswith("ARTICLE ")
+        or clean.startswith("§ ")
         or (clean.startswith("Section ") and clean.endswith("."))
         or clean in {"Licensing", "Downloads", "Release Policy", "Questions"}
     )
@@ -449,6 +460,8 @@ def list_policies() -> str:
                 age = f" — cached {age_h}h ago"
             else:
                 age = " — not yet fetched"
+            if meta.get("search_requires"):
+                age += f" — searched only when the query mentions '{meta['search_requires']}'"
             lines.append(f"- **`{key}`**: {meta['title']}{age}")
             lines.append(f"  {meta['description']}")
             lines.append(f"  <{meta['url']}>")
@@ -482,6 +495,8 @@ def search_policies(query: str, max_results: int = 10) -> str:
 
     Returns ranked excerpts with surrounding context.  Policies not yet in the
     local cache are fetched automatically so every policy is always searched.
+    Conditional sources (e.g. Delaware General Corporation Law) are only
+    searched when the query mentions their trigger term, such as 'Delaware'.
     """
     if not query.strip():
         return "Please provide a search query."
@@ -495,6 +510,8 @@ def search_policies(query: str, max_results: int = 10) -> str:
     chunks: list[dict[str, Any]] = []
     uncached: list[str] = []
     for key in POLICY_SOURCES:
+        if not _search_enabled(key, query):
+            continue
         entry = cache.get(key, {})
         if entry.get("text") and not str(entry["text"]).startswith("[Error"):
             chunks.extend(_policy_chunks(key, str(entry["text"])))

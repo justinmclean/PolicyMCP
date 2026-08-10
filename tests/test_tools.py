@@ -710,3 +710,103 @@ def test_refresh_cache_all_when_keys_is_none(monkeypatch: pytest.MonkeyPatch) ->
 
     assert f"Refreshed {len(POLICY_SOURCES)} policies" in result
     assert len(fetcher.load_cache()) == len(POLICY_SOURCES)
+
+
+# ---------------------------------------------------------------------------
+# Delaware General Corporation Law — conditional search
+# ---------------------------------------------------------------------------
+
+def test_delaware_sources_registered_with_search_gate() -> None:
+    delaware_keys = [k for k in POLICY_SOURCES if k.startswith("delaware_gcl_")]
+
+    assert len(delaware_keys) == 18
+    for key in delaware_keys:
+        assert POLICY_SOURCES[key]["search_requires"] == "delaware"
+        assert POLICY_SOURCES[key]["section"] == "Delaware Law"
+
+
+def test_search_policies_skips_delaware_when_not_mentioned(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls = stub_all_fetches(monkeypatch)
+    seed_cache(
+        "delaware_gcl_registered_office",
+        text="Every corporation shall have and maintain a registered agent in the State.",
+    )
+
+    result = tools.search_policies("What are the registered agent requirements?")
+
+    assert "delaware_gcl_registered_office" not in result
+    assert not any("delcode.delaware.gov" in url for url in calls)
+
+
+def test_search_policies_does_not_fetch_delaware_when_not_mentioned(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Nothing cached at all: the auto-fetch of uncached policies must still
+    # leave the gated Delaware pages alone.
+    calls = stub_all_fetches(monkeypatch)
+
+    tools.search_policies("What are the release voting rules?")
+
+    assert calls  # ungated policies were fetched
+    assert not any("delcode.delaware.gov" in url for url in calls)
+
+
+def test_search_policies_includes_delaware_when_mentioned(monkeypatch: pytest.MonkeyPatch) -> None:
+    stub_all_fetches(monkeypatch)
+    seed_cache(
+        "delaware_gcl_registered_office",
+        text="Every corporation shall have and maintain a registered agent in the State.",
+    )
+
+    result = tools.search_policies("Under Delaware law, what are the registered agent requirements?")
+
+    assert "delaware_gcl_registered_office" in result
+
+
+def test_search_policies_fetches_delaware_when_mentioned(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls = stub_all_fetches(monkeypatch)
+
+    tools.search_policies("What does Delaware law say about registered agents?")
+
+    assert any("delcode.delaware.gov" in url for url in calls)
+
+
+def test_get_policy_returns_delaware_content_regardless_of_gate(monkeypatch: pytest.MonkeyPatch) -> None:
+    patch_fetch(monkeypatch, {})
+    seed_cache("delaware_gcl_formation", text="§ 101. Incorporators; how corporation formed; purposes.")
+
+    result = tools.get_policy("delaware_gcl_formation")
+
+    assert "§ 101" in result
+    assert POLICY_SOURCES["delaware_gcl_formation"]["url"] in result
+
+
+def test_list_policies_notes_conditional_search(monkeypatch: pytest.MonkeyPatch) -> None:
+    result = tools.list_policies()
+
+    assert "delaware_gcl_formation" in result
+    assert "searched only when the query mentions 'delaware'" in result
+
+
+def test_nearest_section_locator_recognises_statute_headings() -> None:
+    lines = [
+        "§ 141. Board of directors; powers; number, qualifications, terms and quorum.",
+        "The business and affairs of every corporation shall be managed by a board of directors.",
+    ]
+
+    assert tools._nearest_section_locator(lines, 1) == "§ 141. Board of directors; powers; number, qualifications, terms and quorum"
+
+
+def test_statute_headings_are_chunk_boundaries(monkeypatch: pytest.MonkeyPatch) -> None:
+    stub_all_fetches(monkeypatch)
+    seed_cache(
+        "delaware_gcl_directors_officers",
+        text="\n".join([
+            "§ 140. Unrelated preamble text.",
+            "Some unrelated content.",
+            "§ 141. Board of directors; powers.",
+            "The business and affairs of every corporation shall be managed by or under the direction of a board of directors.",
+        ]),
+    )
+
+    result = tools.search_policies("Delaware board of directors powers", max_results=1)
+
+    assert "§ 141" in result

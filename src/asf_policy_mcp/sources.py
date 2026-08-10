@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+# Sources may carry an optional "search_requires" term: search_policies only
+# includes (and fetches) such sources when the query mentions that term.
 POLICY_SOURCES: dict[str, dict[str, str]] = {
     "pmc": {
         "title": "PMC Guide (Mailing Lists, Committers, PMC Members)",
@@ -32,6 +34,12 @@ POLICY_SOURCES: dict[str, dict[str, str]] = {
         "url": "https://www.apache.org/foundation/bylaws.html",
         "section": "Governance",
         "description": "Foundation bylaws covering membership, directors, officers, PMCs, records, and amendments",
+    },
+    "certificate_of_incorporation": {
+        "title": "Certificate of Incorporation of The Apache Software Foundation",
+        "url": "https://www.apache.org/foundation/records/certificate.html",
+        "section": "Governance",
+        "description": "Founding certificate of incorporation establishing the ASF as a Delaware nonstock membership corporation, including its charitable purpose, members, and directors",
     },
     "project_independence": {
         "title": "Project Independence",
@@ -382,3 +390,56 @@ POLICY_SOURCES: dict[str, dict[str, str]] = {
         "description": "Policy and process for IP clearance in the Apache Incubator",
     },
 }
+
+# Delaware General Corporation Law (Title 8, Chapter 1). The ASF is a Delaware
+# membership corporation, so its bylaws operate within this statute. These
+# sources are only searched when a query mentions Delaware.
+_DELAWARE_GCL_SUBCHAPTERS: list[tuple[str, str, str, str]] = [
+    ("formation", "sc01", "Subchapter I. Formation",
+     "Incorporators, certificate of incorporation, bylaws, and corporate formation"),
+    ("powers", "sc02", "Subchapter II. Powers",
+     "General and specific powers of Delaware corporations"),
+    ("registered_office", "sc03", "Subchapter III. Registered Office and Registered Agent",
+     "Registered office and registered agent requirements"),
+    ("directors_officers", "sc04", "Subchapter IV. Directors and Officers",
+     "Boards of directors, officers, committees, meetings, and indemnification"),
+    ("stock_dividends", "sc05", "Subchapter V. Stock and Dividends",
+     "Classes of stock, stock issuance, dividends, and redemption"),
+    ("stock_transfers", "sc06", "Subchapter VI. Stock Transfers",
+     "Transfer and registration of stock and restrictions on transfer"),
+    ("meetings_voting", "sc07", "Subchapter VII. Meetings, Elections, Voting and Notice",
+     "Stockholder and member meetings, elections, voting, proxies, consent, and notice"),
+    ("amendments", "sc08", "Subchapter VIII. Amendment of Certificate of Incorporation; Changes in Capital and Capital Stock",
+     "Amending the certificate of incorporation and changes in capital stock"),
+    ("merger_conversion", "sc09", "Subchapter IX. Merger, Consolidation or Conversion",
+     "Mergers, consolidations, and conversions of corporations and other entities"),
+    ("dissolution", "sc10", "Subchapter X. Sale of Assets, Dissolution and Winding Up",
+     "Sale of assets, dissolution, and winding up of corporations"),
+    ("insolvency", "sc11", "Subchapter XI. Insolvency; Receivers and Trustees",
+     "Insolvency, receivers, and trustees"),
+    ("renewal_revival", "sc12", "Subchapter XII. Renewal, Revival, Extension and Restoration",
+     "Renewal, revival, extension, and restoration of certificates of incorporation"),
+    ("suits", "sc13", "Subchapter XIII. Suits Against Corporations, Directors, Officers or Stockholders",
+     "Suits against corporations, directors, officers, or stockholders"),
+    ("close_corporations", "sc14", "Subchapter XIV. Close Corporations; Special Provisions",
+     "Special provisions for close corporations"),
+    ("public_benefit", "sc15", "Subchapter XV. Public Benefit Corporations",
+     "Public benefit corporations"),
+    ("foreign_corporations", "sc16", "Subchapter XVI. Foreign Corporations",
+     "Foreign corporations doing business in Delaware"),
+    ("domestication_transfer", "sc17", "Subchapter XVII. Domestication and Transfer",
+     "Domestication and transfer of non-Delaware entities"),
+    ("miscellaneous", "sc18", "Subchapter XVIII. Miscellaneous Provisions",
+     "Miscellaneous provisions including nonstock and membership corporations"),
+]
+
+POLICY_SOURCES.update({
+    f"delaware_gcl_{slug}": {
+        "title": f"Delaware General Corporation Law — {title}",
+        "url": f"https://delcode.delaware.gov/title8/c001/{path}/index.html",
+        "section": "Delaware Law",
+        "description": f"{description} (Delaware Code Title 8, Chapter 1)",
+        "search_requires": "delaware",
+    }
+    for slug, path, title, description in _DELAWARE_GCL_SUBCHAPTERS
+})
