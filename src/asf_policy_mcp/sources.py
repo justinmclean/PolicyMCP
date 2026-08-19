@@ -59,6 +59,12 @@ POLICY_SOURCES: dict[str, dict[str, str]] = {
         "section": "Governance",
         "description": "How to escalate serious concerns about Apache projects or officers to the appropriate list",
     },
+    "project_requirements": {
+        "title": "Apache Project Minimum Requirements",
+        "url": "https://www.apache.org/dev/project-requirements",
+        "section": "Governance",
+        "description": "Simplified checklist of what every top level project MUST, SHOULD, and MAY do, which podlings must meet before graduation",
+    },
     "project_independence": {
         "title": "Project Independence",
         "url": "https://community.apache.org/projectIndependence.html",
@@ -274,6 +280,18 @@ POLICY_SOURCES: dict[str, dict[str, str]] = {
         "url": "https://www.apache.org/foundation/conferences.html",
         "section": "Events",
         "description": "Official ASF conference policy and the role of the Trademarks Committee in approving event use of Apache marks",
+    },
+    "giveaway_rules": {
+        "title": "The ASF Giveaway Official Rules",
+        "url": "https://apache.org/giveaway-rules/",
+        "section": "Events",
+        "description": "Official sweepstakes rules for ASF social media brand giveaways, covering eligibility, entry, prizes, liability, and the arbitration and governing law terms",
+    },
+    "travel_assistance": {
+        "title": "ASF Travel Assistance",
+        "url": "https://www.apache.org/travel/",
+        "section": "Events",
+        "description": "Travel Assistance Committee criteria for funding attendance at Community Over Code events, and the duties expected of recipients",
     },
     "repo_policy": {
         "title": "Repository Policy",
