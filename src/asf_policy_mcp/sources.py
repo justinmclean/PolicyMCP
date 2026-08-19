@@ -29,6 +29,12 @@ POLICY_SOURCES: dict[str, dict[str, str]] = {
         "section": "Community And Project Oversight",
         "description": "Policy for archiving ASF public forums such as mailing lists",
     },
+    "mailing_lists": {
+        "title": "ASF Mailing Lists",
+        "url": "https://www.apache.org/foundation/mailinglists.html",
+        "section": "Community And Project Oversight",
+        "description": "Foundation-wide mailing list index, naming conventions, and usage expectations",
+    },
     "bylaws": {
         "title": "Bylaws of The Apache Software Foundation",
         "url": "https://www.apache.org/foundation/bylaws.html",
@@ -40,6 +46,18 @@ POLICY_SOURCES: dict[str, dict[str, str]] = {
         "url": "https://www.apache.org/foundation/records/certificate.html",
         "section": "Governance",
         "description": "Founding certificate of incorporation establishing the ASF as a Delaware nonstock membership corporation, including its charitable purpose, members, and directors",
+    },
+    "board_policy_overview": {
+        "title": "Apache Board - Project Services and Expectations",
+        "url": "https://www.apache.org/board/policies",
+        "section": "Governance",
+        "description": "The comprehensive list of MUST/SHOULD/MAY requirements the board and policy-setting officers place on all Apache PMCs",
+    },
+    "board_escalation": {
+        "title": "Board Escalation Guide",
+        "url": "https://www.apache.org/board/escalation",
+        "section": "Governance",
+        "description": "How to escalate serious concerns about Apache projects or officers to the appropriate list",
     },
     "project_independence": {
         "title": "Project Independence",
@@ -137,11 +155,23 @@ POLICY_SOURCES: dict[str, dict[str, str]] = {
         "section": "Licensing",
         "description": "Cryptography policy for ASF releases",
     },
+    "export_control": {
+        "title": "ASF Export Classifications and Source Links",
+        "url": "https://www.apache.org/licenses/exports/",
+        "section": "Licensing",
+        "description": "U.S. export control status of ASF products and the regulations applying to ASF distributions",
+    },
     "generative_tooling": {
         "title": "Generative Tooling Guidance",
         "url": "https://www.apache.org/legal/generative-tooling.html",
         "section": "Licensing",
         "description": "Guidance for using generative tooling in ASF work",
+    },
+    "dmca": {
+        "title": "DMCA Designated Agent",
+        "url": "https://www.apache.org/legal/dmca",
+        "section": "Licensing",
+        "description": "The ASF's Digital Millennium Copyright Act designated agent and the process for DMCA notices",
     },
     "branding": {
         "title": "Project Branding Requirements",
@@ -191,17 +221,59 @@ POLICY_SOURCES: dict[str, dict[str, str]] = {
         "section": "Branding",
         "description": "Branding requirements for Apache Incubator podlings",
     },
-    "event_code_of_conduct": {
-        "title": "Event Code of Conduct",
-        "url": "https://www.apachecon.com/conduct.html",
-        "section": "Events",
-        "description": "Code of conduct for ASF events such as ApacheCon and Community Over Code",
+    "naming_policy": {
+        "title": "Process For Selecting New Apache Software Product Names",
+        "url": "https://www.apache.org/foundation/marks/naming",
+        "section": "Branding",
+        "description": "How Apache project and product names are chosen, researched, and cleared, including the trademark research steps required before adopting a name",
+    },
+    "trademark_reporting": {
+        "title": "Trademark Problem/Infringement Reporting Process",
+        "url": "https://www.apache.org/foundation/marks/reporting",
+        "section": "Branding",
+        "description": "How PMCs and third parties report suspected misuse of Apache marks to Brand Management",
+    },
+    "social_media_branding": {
+        "title": "Social Media Best Practices",
+        "url": "https://www.apache.org/foundation/marks/socialmedia",
+        "section": "Branding",
+        "description": "Guidance for projects running branded social media accounts under ASF trademark policy",
+    },
+    "trademark_name_guide": {
+        "title": "Apache Product Name Usage Guide",
+        "url": "https://www.apache.org/foundation/marks/guide",
+        "section": "Branding",
+        "description": "How to correctly refer to Apache brands and product names in text",
+    },
+    "trademark_faq": {
+        "title": "Apache Trademark Usage FAQs",
+        "url": "https://www.apache.org/foundation/marks/faq",
+        "section": "Branding",
+        "description": "Frequently asked questions on permitted and prohibited uses of Apache marks, including Powered By naming",
+    },
+    "trademark_list": {
+        "title": "List of Apache Registered Trademarks",
+        "url": "https://www.apache.org/foundation/marks/list",
+        "section": "Branding",
+        "description": "The authoritative list of ASF word marks and registered trademarks",
     },
     "trademark_policy": {
         "title": "ASF Trademark Policy",
         "url": "https://www.apache.org/foundation/marks/",
         "section": "Branding",
         "description": "Foundation-wide trademark policy and guidance for Apache marks",
+    },
+    "event_code_of_conduct": {
+        "title": "Event Code of Conduct",
+        "url": "https://www.apachecon.com/conduct.html",
+        "section": "Events",
+        "description": "Code of conduct for ASF events such as ApacheCon and Community Over Code",
+    },
+    "conference_policy": {
+        "title": "ASF Conferences",
+        "url": "https://www.apache.org/foundation/conferences.html",
+        "section": "Events",
+        "description": "Official ASF conference policy and the role of the Trademarks Committee in approving event use of Apache marks",
     },
     "repo_policy": {
         "title": "Repository Policy",
@@ -323,6 +395,12 @@ POLICY_SOURCES: dict[str, dict[str, str]] = {
         "section": "Press",
         "description": "Guidelines for press releases and marketing coordination",
     },
+    "officer_speaking_guide": {
+        "title": "Speaking Guidelines for ASF Directors and Officers",
+        "url": "https://apache.org/press/guides/officer-speaking-guide.html",
+        "section": "Press",
+        "description": "When directors, officers, and project leaders speak for the ASF versus themselves, and how to declare a hat in external communications",
+    },
     "sponsorship": {
         "title": "Sponsorship Requirements",
         "url": "https://www.apache.org/foundation/sponsorship.html",
@@ -372,7 +450,7 @@ POLICY_SOURCES: dict[str, dict[str, str]] = {
         "description": "Privacy policy for downloadable Apache products with medium privacy standards",
     },
     "privacy_mailing_lists": {
-        "title": "Mailing List Policy",
+        "title": "Mailing List Privacy Policy",
         "url": "https://privacy.apache.org/policies/mailinglist-policy.html",
         "section": "Privacy",
         "description": "Privacy policy for ASF public mailing lists",
