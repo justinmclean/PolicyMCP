@@ -179,6 +179,12 @@ POLICY_SOURCES: dict[str, dict[str, str]] = {
         "section": "Licensing",
         "description": "The ASF's Digital Millennium Copyright Act designated agent and the process for DMCA notices",
     },
+    "licensing_howto": {
+        "title": "Assembling LICENSE and NOTICE files",
+        "url": "https://infra.apache.org/licensing-howto.html",
+        "section": "Licensing",
+        "description": "How-to for assembling LICENSE and NOTICE files, covering bundled vs non-bundled dependencies, NOTICE modifications and binary distributions",
+    },
     "branding": {
         "title": "Project Branding Requirements",
         "url": "https://www.apache.org/foundation/marks/pmcs",
